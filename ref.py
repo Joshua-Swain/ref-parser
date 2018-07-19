@@ -15,7 +15,8 @@ top_ref = [None, { '+' : '+',
                    'list' : 'list',
                    'let' : 'let',
                    'let*' : 'let*',
-                   'define' : 'define'
+                   'define' : 'define',
+                   'set!' : 'set!'
                   }]
 
 
@@ -159,6 +160,8 @@ def do_eval( ref, a ):
 
         for e in f[2:]:
           a = do_eval( newref, e )
+    elif op == "set!":
+      a = setVar(ref, f[1], f[2]) #get the value of the variable, save it to 'a'
     else:
       raise EvalError( 'unknown proc: ' + str( op ) )
 
@@ -181,6 +184,16 @@ def lookup( ref, id ):
   else:
     raise EvalError( "Cannot find: " + str( id ) )
 
+def setVar( ref, id, val ):
+  map = ref[1]
+  if id in map:
+    oldVal = map[id]
+    map[id] = val
+    return oldVal
+  elif ref[0] != None:
+    return setVar( ref[0], id, val )
+  else:
+    raise EvalError( "Cannot find: " + str( id ) )
 
 def parseS():
   tok = lookahead()
