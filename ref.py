@@ -16,7 +16,8 @@ top_ref = [None, { '+' : '+',
                    'let' : 'let',
                    'let*' : 'let*',
                    'define' : 'define',
-                   'set!' : 'set!'
+                   'set!' : 'set!',
+                   'lambda' : 'lambda'
                   }]
 
 
@@ -31,6 +32,14 @@ class EvalError(Exception):
     self.value = value
   def __str__(self):
     return repr(self.value)
+
+class Function:
+  def __init__(self, params, code, ref):
+    self.params = params
+    self.code = code
+    self.ref = ref
+  def __str__(self):
+    return "Did you mean to print a Function?"
 
 def lookahead():
   global cur_token
@@ -162,8 +171,33 @@ def do_eval( ref, a ):
           a = do_eval( newref, e )
     elif op == "set!":
       a = setVar(ref, f[1], f[2]) #get the value of the variable, save it to 'a'
+    elif op == "lambda":
+      params = f[1]
+      code = []
+      for e in f[2:]:
+        code.append(e)
+      func = Function(params, code, ref); 
+      a = func 
     else:
-      raise EvalError( 'unknown proc: ' + str( op ) )
+      #look for this operator in ref, as a closure
+      if (isinstance(op, Function)):
+        func = op
+        #set parameters/reference environment
+        newref = [ func.ref, dict() ]
+        map = newref[1]
+
+        i = 0
+        for p in func.params:
+          key = p
+          val = do_eval(func.ref, f[i+1])
+          map[key] = val
+          i = i+1
+        #print map
+        #if it's a closure, run it
+        for e in func.code:
+          a = do_eval(newref, e)
+      else:
+        raise EvalError( 'unknown proc: ' + str( op ) )
 
     if a == None:
       raise EvalError( op )
