@@ -170,7 +170,7 @@ def do_eval( ref, a ):
         for e in f[2:]:
           a = do_eval( newref, e )
     elif op == "set!":
-      a = setVar(ref, f[1], f[2]) #get the value of the variable, save it to 'a'
+      a = setVar(ref, f[1], do_eval(ref, f[2])) #get the value of the variable, save it to 'a'
     elif op == "lambda":
       params = f[1]
       code = []
